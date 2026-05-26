@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Solicitud de Facturación — Centurion Llantas</title>
+<style>
+:root{
+  --naranja:#D35400;--negro:#111;--bl:#fff;
+  --gc:#f5f5f5;--gb:#e2e2e2;--gt:#666;
+  --radio:10px;--rsm:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f0f0;min-height:100vh;padding:16px;display:flex;justify-content:center;}
+.container{width:100%;max-width:520px;}
+
+/* HEADER */
+.header{background:var(--negro);border-radius:var(--radio) var(--radio) 0 0;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--naranja);}
+.header-title{color:#fff;font-size:15px;font-weight:700;letter-spacing:.5px;}
+.header-sub{color:#888;font-size:11px;margin-top:2px;}
+
+/* CARDS */
+.card{background:var(--bl);padding:16px;border-left:1px solid var(--gb);border-right:1px solid var(--gb);border-bottom:1px solid var(--gb);}
+.card:last-of-type{border-radius:0 0 var(--radio) var(--radio);}
+.sec-title{font-size:10px;font-weight:700;color:var(--naranja);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;}
+.lbl{font-size:12px;color:var(--gt);margin-bottom:4px;display:block;font-weight:500;}
+.field{margin-bottom:12px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+input[type=text],input[type=number],select,textarea{width:100%;padding:9px 11px;font-size:14px;border:1px solid var(--gb);border-radius:var(--rsm);outline:none;background:var(--bl);color:var(--negro);font-family:inherit;}
+input:focus,select:focus,textarea:focus{border-color:var(--naranja);}
+textarea{resize:vertical;min-height:70px;}
+
+/* TOGGLE FACTURA */
+.toggle-card{display:flex;align-items:center;justify-content:space-between;background:var(--gc);border-radius:var(--rsm);padding:12px 14px;margin-bottom:4px;cursor:pointer;}
+.toggle-label{font-size:14px;font-weight:600;color:var(--negro);}
+.toggle-sub{font-size:11px;color:var(--gt);margin-top:1px;}
+.toggle-switch{width:44px;height:24px;background:#ccc;border-radius:12px;position:relative;transition:background .2s;flex-shrink:0;}
+.toggle-switch.on{background:var(--naranja);}
+.toggle-switch::after{content:'';position:absolute;width:20px;height:20px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left .2s;}
+.toggle-switch.on::after{left:22px;}
+.fiscal-fields{display:none;margin-top:12px;}
+.fiscal-fields.show{display:block;}
+
+/* CHIPS */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+.chip{padding:7px 14px;font-size:13px;font-weight:500;border:1.5px solid var(--gb);border-radius:20px;background:transparent;cursor:pointer;color:var(--gt);transition:all .15s;}
+.chip.sel{background:var(--naranja);color:#fff;border-color:var(--naranja);}
+
+/* CONCEPTOS */
+.concepto-header{display:grid;grid-template-columns:1fr 90px 55px 80px 30px;gap:6px;padding-bottom:6px;border-bottom:1px solid var(--gb);margin-bottom:8px;}
+.concepto-header span{font-size:10px;color:var(--gt);font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+.concepto-row{display:grid;grid-template-columns:1fr 90px 55px 80px 30px;gap:6px;align-items:center;margin-bottom:8px;}
+.concepto-row input{padding:7px 8px;font-size:13px;}
+.concepto-sub{display:grid;grid-template-columns:1fr 90px;gap:6px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--gc);}
+.concepto-sub input{padding:7px 8px;font-size:13px;}
+.sub-lbl{font-size:10px;color:var(--gt);margin-bottom:3px;}
+.btn-remove{background:none;border:none;color:#ccc;font-size:18px;cursor:pointer;padding:0;line-height:1;text-align:center;}
+.btn-remove:hover{color:#e74c3c;}
+.btn-add{width:100%;padding:9px;font-size:13px;font-weight:500;background:var(--gc);border:1.5px dashed var(--gb);border-radius:var(--rsm);cursor:pointer;color:var(--gt);margin-top:4px;transition:all .15s;}
+.btn-add:hover{border-color:var(--naranja);color:var(--naranja);}
+.subtotal-row{font-size:12px;color:var(--gt);text-align:right;margin-top:4px;}
+.subtotal-val{font-weight:600;color:var(--negro);}
+
+/* TOTALES */
+.total-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gc);}
+.total-row:last-child{border-bottom:none;}
+.total-lbl{font-size:13px;color:var(--gt);}
+.total-val{font-size:14px;font-weight:600;color:var(--negro);}
+.total-row.grand .total-lbl{font-size:15px;font-weight:700;color:var(--negro);}
+.total-row.grand .total-val{font-size:18px;font-weight:800;color:var(--naranja);}
+
+/* BOTÓN ENVIAR */
+.btn-enviar{width:100%;padding:14px;font-size:15px;font-weight:700;background:var(--naranja);color:#fff;border:none;border-radius:var(--rsm);cursor:pointer;margin-top:4px;letter-spacing:.03em;}
+.btn-enviar:hover{opacity:.9;}
+
+/* FOOTER */
+.footer-card{background:var(--negro);border-radius:0 0 var(--radio) var(--radio);padding:10px 16px;display:flex;justify-content:space-between;align-items:center;}
+.footer-txt{font-size:10px;color:#888;}
+.footer-web{font-size:10px;color:var(--naranja);font-weight:600;}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;align-items:flex-end;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--bl);border-radius:var(--radio) var(--radio) 0 0;padding:20px 16px;width:100%;max-width:520px;max-height:80vh;overflow-y:auto;}
+.modal-title{font-size:15px;font-weight:700;color:var(--negro);margin-bottom:4px;}
+.modal-sub{font-size:12px;color:var(--gt);margin-bottom:14px;}
+.preview-box{background:var(--gc);border-radius:var(--rsm);padding:14px;font-size:13px;line-height:1.7;white-space:pre-wrap;font-family:monospace;color:var(--negro);max-height:40vh;overflow-y:auto;margin-bottom:14px;}
+.modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn-cancel{padding:12px;font-size:13px;background:var(--gc);border:1px solid var(--gb);border-radius:var(--rsm);cursor:pointer;color:var(--gt);}
+.btn-wa{padding:12px;font-size:13px;font-weight:600;background:#25D366;color:#fff;border:none;border-radius:var(--rsm);cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <div class="header-title">CENTURION LLANTAS</div>
+    <div class="header-sub">Solicitud de facturación interna</div>
+  </div>
+  <svg width="36" height="36" viewBox="0 0 40 40" fill="none">
+    <path d="M8 34 Q6 31 5 26 Q4 20 7 13 Q11 5 19 2 Q25 0 31 1 Q40 3 43 10 Q47 17 44 26 Q42 31 38 35 L38 38 L14 38 L14 35 Z" fill="#D35400"/>
+    <path d="M13 33 Q11 29 11 23 Q11 14 17 9 Q22 5 29 5 Q36 5 39 11 Q43 17 40 24 Q38 28 35 32 L33 33 Z" fill="#1a1a1a"/>
+    <rect x="13" y="36" width="26" height="3" rx="1.5" fill="#D35400"/>
+  </svg>
+</div>
+
+<!-- 01 VENDEDOR -->
+<div class="card">
+  <div class="sec-title">01 — Vendedor</div>
+  <div class="field">
+    <label class="lbl">¿Quién atiende?</label>
+    <select id="vendedor">
+      <option value="">Selecciona...</option>
+      <option>Iris</option>
+      <option>Luis</option>
+      <option>Fátima</option>
+      <option>Otro</option>
+    </select>
+  </div>
+</div>
+
+<!-- 02 TIPO DOCUMENTO -->
+<div class="card">
+  <div class="sec-title">02 — Tipo de documento</div>
+  <div class="chips" id="chips-tipo">
+    <button class="chip" data-group="tipo" data-val="Contado">Contado</button>
+    <button class="chip" data-group="tipo" data-val="Crédito">Crédito</button>
+    <button class="chip" data-group="tipo" data-val="Remisión">Remisión</button>
+  </div>
+</div>
+
+<!-- 03 FACTURA TOGGLE -->
+<div class="card">
+  <div class="sec-title">03 — Facturación</div>
+  <div class="toggle-card" onclick="toggleFactura()">
+    <div>
+      <div class="toggle-label">¿Requiere factura?</div>
+      <div class="toggle-sub">Activa para capturar datos fiscales</div>
+    </div>
+    <div class="toggle-switch" id="toggle-sw"></div>
+  </div>
+  <div class="fiscal-fields" id="fiscal-fields">
+    <div class="field" style="margin-top:12px;">
+      <label class="lbl">Razón social</label>
+      <input type="text" id="razon" placeholder="Nombre o empresa tal como aparece en el SAT"/>
+    </div>
+    <div class="row2">
+      <div>
+        <label class="lbl">RFC</label>
+        <input type="text" id="rfc" placeholder="Ej. XAXX010101000" style="text-transform:uppercase"/>
+      </div>
+      <div>
+        <label class="lbl">Código postal fiscal</label>
+        <input type="text" id="cp-fiscal" placeholder="Ej. 45560" maxlength="5"/>
+      </div>
+    </div>
+    <div class="field">
+      <label class="lbl">Régimen fiscal</label>
+      <select id="regimen">
+        <option value="">Selecciona...</option>
+        <option>601 — General de Ley Personas Morales</option>
+        <option>603 — Personas Morales con Fines no Lucrativos</option>
+        <option>605 — Sueldos y Salarios e Ingresos Asimilados</option>
+        <option>606 — Arrendamiento</option>
+        <option>607 — Régimen de Enajenación o Adquisición de Bienes</option>
+        <option>608 — Demás ingresos</option>
+        <option>610 — Residentes en el Extranjero sin Establecimiento</option>
+        <option>611 — Ingresos por Dividendos</option>
+        <option>612 — Personas Físicas con Actividades Empresariales</option>
+        <option>614 — Ingresos por intereses</option>
+        <option>615 — Régimen de los ingresos por obtención de premios</option>
+        <option>616 — Sin obligaciones fiscales</option>
+        <option>620 — Sociedades Cooperativas de Producción</option>
+        <option>621 — Incorporación Fiscal (RIF)</option>
+        <option>622 — Actividades Agrícolas, Ganaderas, Silvícolas y Pesqueras</option>
+        <option>623 — Opcional para Grupos de Sociedades</option>
+        <option>624 — Coordinados</option>
+        <option>625 — Régimen de las Actividades Empresariales con ingresos por Comisión</option>
+        <option>626 — Régimen Simplificado de Confianza (RESICO)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="lbl">Uso de CFDI</label>
+      <select id="uso-cfdi">
+        <option value="">Selecciona...</option>
+        <option>G01 — Adquisición de mercancias</option>
+        <option>G02 — Devoluciones, descuentos o bonificaciones</option>
+        <option>G03 — Gastos en general</option>
+        <option>I01 — Construcciones</option>
+        <option>I02 — Mobiliario y equipo de oficina</option>
+        <option>I03 — Equipo de transporte</option>
+        <option>I04 — Equipo de computo y accesorios</option>
+        <option>I05 — Dados, troqueles, moldes, matrices y herramental</option>
+        <option>I06 — Comunicaciones telefónicas</option>
+        <option>I07 — Comunicaciones satelitales</option>
+        <option>I08 — Otra maquinaria y equipo</option>
+        <option>D01 — Honorarios médicos, dentales y gastos hospitalarios</option>
+        <option>D10 — Pagos por servicios educativos</option>
+        <option>S01 — Sin efectos fiscales</option>
+        <option>CP01 — Pagos</option>
+        <option>CN01 — Nómina</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="lbl">Correo para envío de factura</label>
+      <input type="text" id="correo-factura" placeholder="correo@empresa.com"/>
+    </div>
+  </div>
+</div>
+
+<!-- 05 MÉTODO DE PAGO -->
+<div class="card">
+  <div class="sec-title">04 — Método de pago</div>
+  <div class="chips" id="chips-pago">
+    <button class="chip" data-group="pago" data-val="Efectivo">Efectivo</button>
+    <button class="chip" data-group="pago" data-val="Transferencia">Transferencia</button>
+    <button class="chip" data-group="pago" data-val="Tarjeta crédito">Tarjeta crédito</button>
+    <button class="chip" data-group="pago" data-val="Tarjeta débito">Tarjeta débito</button>
+    <button class="chip" data-group="pago" data-val="Cheque">Cheque</button>
+    <button class="chip" data-group="pago" data-val="Por definir">Por definir</button>
+  </div>
+
+  <!-- MSI — aparece solo si es tarjeta crédito -->
+  <div id="msi-section" style="display:none;">
+    <div style="height:1px;background:var(--gb);margin:4px 0 12px;"></div>
+    <label class="lbl">Meses sin intereses</label>
+    <div class="chips" id="chips-msi">
+      <button class="chip" data-group="msi" data-val="Contado">Contado</button>
+      <button class="chip" data-group="msi" data-val="3 MSI">3 MSI</button>
+      <button class="chip" data-group="msi" data-val="6 MSI">6 MSI</button>
+      <button class="chip" data-group="msi" data-val="9 MSI">9 MSI</button>
+      <button class="chip" data-group="msi" data-val="12 MSI">12 MSI</button>
+    </div>
+    <div id="msi-aviso" style="display:none;background:#FFF3E0;border:1px solid #FFB74D;border-radius:var(--rsm);padding:10px 12px;margin-top:4px;">
+      <div style="font-size:12px;font-weight:700;color:#E65100;margin-bottom:3px;">⚠️ Adjuntar cotización MSI</div>
+      <div style="font-size:12px;color:#BF360C;">Esta venta requiere la hoja de cotización con el desglose de meses. Recuerda generarla y compartirla junto con este mensaje.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 06 CONCEPTOS -->
+<div class="card">
+  <div class="sec-title">05 — Conceptos (llantas)</div>
+  <div class="concepto-header">
+    <span>Marca y modelo</span>
+    <span>Medida</span>
+    <span>Cant.</span>
+    <span>P. unitario</span>
+    <span></span>
+  </div>
+  <div id="conceptos-list"></div>
+  <button class="btn-add" onclick="addConcepto()">+ Agregar llanta</button>
+  <div class="subtotal-row" style="margin-top:10px;">Subtotal artículos: <span class="subtotal-val" id="subtotal-display">$0.00</span></div>
+</div>
+
+<!-- 06 TOTALES -->
+<div class="card">
+  <div class="sec-title">06 — Totales</div>
+  <div class="total-row">
+    <span class="total-lbl">Subtotal</span>
+    <span class="total-val" id="t-subtotal">$0.00</span>
+  </div>
+  <div class="total-row">
+    <span class="total-lbl">IVA (16%)</span>
+    <span class="total-val" id="t-iva">$0.00</span>
+  </div>
+  <div class="total-row grand">
+    <span class="total-lbl">Total</span>
+    <span class="total-val" id="t-total">$0.00</span>
+  </div>
+</div>
+
+<!-- 07 NOTAS -->
+<div class="card">
+  <div class="sec-title">07 — Notas adicionales</div>
+  <textarea id="notas" placeholder="Indicaciones especiales, número de unidad, referencia interna..."></textarea>
+</div>
+
+<!-- BOTÓN -->
+<div class="card" style="padding-top:4px;">
+  <button class="btn-enviar" onclick="previsualizarMensaje()">Enviar a facturación por WhatsApp</button>
+</div>
+
+<!-- FOOTER -->
+<div class="footer-card">
+  <div class="footer-txt">ventas@llantascenturion.com · 33 1978 3511</div>
+  <div class="footer-web">llantascenturion.com.mx</div>
+</div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title">Vista previa del mensaje</div>
+    <div class="modal-sub">Así se enviará a facturación por WhatsApp</div>
+    <div class="preview-box" id="previewBox"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" id="btnCancel">Cancelar</button>
+      <button class="btn-wa" id="btnWA">📲 Abrir WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var facturaOn = false;
+var concetoCount = 0;
+var chips = {};
+
+// Init fecha
+window.onload = function() {
+  addConcepto();
+};
+
+// TOGGLE FACTURA
+function toggleFactura() {
+  facturaOn = !facturaOn;
+  var sw = document.getElementById('toggle-sw');
+  var fields = document.getElementById('fiscal-fields');
+  sw.className = 'toggle-switch' + (facturaOn ? ' on' : '');
+  fields.className = 'fiscal-fields' + (facturaOn ? ' show' : '');
+}
+
+// CHIPS
+document.querySelectorAll('.chip').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var group = this.dataset.group;
+    document.querySelectorAll('.chip[data-group="'+group+'"]').forEach(function(b){ b.classList.remove('sel'); });
+    this.classList.add('sel');
+    chips[group] = this.dataset.val;
+    if (group === 'pago') handlePago(this.dataset.val);
+    if (group === 'msi') handleMSI(this.dataset.val);
+  });
+});
+
+function handlePago(val) {
+  var msiSec = document.getElementById('msi-section');
+  if (val === 'Tarjeta crédito') {
+    msiSec.style.display = 'block';
+  } else {
+    msiSec.style.display = 'none';
+    document.getElementById('msi-aviso').style.display = 'none';
+    chips['msi'] = null;
+    document.querySelectorAll('.chip[data-group="msi"]').forEach(function(b){ b.classList.remove('sel'); });
+  }
+}
+
+function handleMSI(val) {
+  var aviso = document.getElementById('msi-aviso');
+  if (val && val !== 'Contado') {
+    aviso.style.display = 'block';
+  } else {
+    aviso.style.display = 'none';
+  }
+}
+
+// FORMATO MONEDA
+function fmt(n) {
+  return '$' + parseFloat(n || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+// AGREGAR CONCEPTO
+function addConcepto() {
+  concetoCount++;
+  var id = concetoCount;
+  var list = document.getElementById('conceptos-list');
+  var div = document.createElement('div');
+  div.id = 'concepto-' + id;
+  div.innerHTML =
+    '<div class="concepto-row">' +
+      '<input type="text" placeholder="Marca y modelo" id="marca-'+id+'"/>' +
+      '<input type="text" placeholder="Medida" id="medida-'+id+'"/>' +
+      '<input type="number" placeholder="0" min="1" id="cant-'+id+'" oninput="calcConcepto('+id+')" style="text-align:center;"/>' +
+      '<input type="number" placeholder="0.00" min="0" step="0.01" id="precio-'+id+'" oninput="calcConcepto('+id+')"  style="text-align:right;"/>' +
+      '<button class="btn-remove" onclick="removeConcepto('+id+')">×</button>' +
+    '</div>' +
+    '<div style="text-align:right;font-size:11px;color:var(--gt);margin:-4px 30px 10px 0;">Subtotal: <b id="sub-'+id+'">$0.00</b></div>';
+  list.appendChild(div);
+}
+
+function removeConcepto(id) {
+  var el = document.getElementById('concepto-' + id);
+  if (el) el.remove();
+  calcTotales();
+}
+
+function calcConcepto(id) {
+  var cant = parseFloat(document.getElementById('cant-'+id).value) || 0;
+  var precio = parseFloat(document.getElementById('precio-'+id).value) || 0;
+  var sub = cant * precio;
+  document.getElementById('sub-'+id).textContent = fmt(sub);
+  calcTotales();
+}
+
+function calcTotales() {
+  var total = 0;
+  // sumar todos los subtotales visibles
+  document.querySelectorAll('[id^="sub-"]').forEach(function(el) {
+    var val = parseFloat(el.textContent.replace(/[$,]/g,'')) || 0;
+    total += val;
+  });
+  var iva = total * 0.16;
+  var grand = total + iva;
+  document.getElementById('subtotal-display').textContent = fmt(total);
+  document.getElementById('t-subtotal').textContent = fmt(total);
+  document.getElementById('t-iva').textContent = fmt(iva);
+  document.getElementById('t-total').textContent = fmt(grand);
+}
+
+// GENERAR MENSAJE
+function generarMensaje() {
+  var vendedor = document.getElementById('vendedor').value || '—';
+  var tipo = chips['tipo'] || '—';
+  var notas = document.getElementById('notas').value;
+  var subtotal = document.getElementById('t-subtotal').textContent;
+  var iva = document.getElementById('t-iva').textContent;
+  var total = document.getElementById('t-total').textContent;
+
+  var msg = '🧾 *SOLICITUD DE FACTURACIÓN*\n';
+  msg += '━━━━━━━━━━━━━━━━━━\n';
+  msg += '👤 *Vendedor:* ' + vendedor + '\n';
+  msg += '📋 *Tipo:* ' + tipo + '\n';
+
+
+
+
+  if (facturaOn) {
+    var razon = document.getElementById('razon').value || '—';
+    var rfc = document.getElementById('rfc').value || '—';
+    var regimen = document.getElementById('regimen').value || '—';
+    var cfdi = document.getElementById('uso-cfdi').value || '—';
+    var correo = document.getElementById('correo-factura').value || '—';
+    msg += '🧾 *DATOS FISCALES*\n';
+    msg += 'Razón social: ' + razon + '\n';
+    msg += 'RFC: ' + rfc.toUpperCase() + '\n';
+    var cp = document.getElementById('cp-fiscal').value || '—';
+    msg += 'C.P. fiscal: ' + cp + '\n';
+    msg += 'Régimen: ' + regimen + '\n';
+    msg += 'Uso CFDI: ' + cfdi + '\n';
+    msg += 'Correo: ' + correo + '\n\n';
+  } else {
+    msg += '🚫 *NO REQUIERE FACTURA*\n\n';
+  }
+
+  msg += '🛞 *CONCEPTOS*\n';
+  var hayConceptos = false;
+  var i = 1;
+  while (i <= concetoCount) {
+    var marcaEl = document.getElementById('marca-'+i);
+    if (marcaEl) {
+      var marca = marcaEl.value || '—';
+      var medida = document.getElementById('medida-'+i).value || '—';
+      var cant = document.getElementById('cant-'+i).value || '0';
+      var precio = document.getElementById('precio-'+i).value || '0.00';
+      var sub = document.getElementById('sub-'+i);
+      var subVal = sub ? sub.textContent : fmt(parseFloat(cant)*parseFloat(precio));
+      msg += (hayConceptos ? '' : '') + '• ' + marca + ' ' + medida + '\n';
+      msg += '  Cant: ' + cant + ' × ' + fmt(precio) + ' = ' + subVal + '\n';
+      hayConceptos = true;
+    }
+    i++;
+  }
+
+  msg += '\n💰 *TOTALES*\n';
+  msg += 'Subtotal: ' + subtotal + '\n';
+  msg += 'IVA 16%: ' + iva + '\n';
+  msg += '*Total: ' + total + '*\n';
+
+  if (notas) {
+    msg += '\n📝 *Notas:* ' + notas + '\n';
+  }
+
+  msg += '\n— Centurion Llantas · 33 1978 3511';
+  return msg;
+}
+
+function previsualizarMensaje() {
+  document.getElementById('previewBox').textContent = generarMensaje();
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+document.getElementById('btnCancel').addEventListener('click', function() {
+  document.getElementById('modalOverlay').classList.remove('show');
+});
+
+document.getElementById('btnWA').addEventListener('click', function() {
+  var msg = generarMensaje();
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+});
+
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('show');
+});
+</script>
+</body>
+</html>
